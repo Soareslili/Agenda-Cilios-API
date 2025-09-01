@@ -70,18 +70,6 @@ model Appointment {
 
 ---
 
-## 🔑 Variáveis de Ambiente (`.env`)
-
-```env
-DATABASE_URL="mongodb+srv://USER:PASS@CLUSTER.mongodb.net/agenda-cilios"
-CRON_SECRET="sua_senha_segura"
-ALERT_TARGET_EMAIL="profissional@exemplo.com"
-ALERT_SENDER_EMAIL="noreply@seudominio.com"
-# RESEND_API_KEY=re_xxx (opcional)
-TZ_BACKEND="America/Sao_Paulo"
-```
-
----
 
 ## ⚙️ Rotas da API
 
