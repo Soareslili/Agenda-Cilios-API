@@ -1,36 +1,164 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💅 Agenda Cílios
 
-## Getting Started
+Sistema de agendamento online para estúdios de beleza e profissionais autônomos (ex: alongamento de cílios, estética, tatuagem).  
+Permite gerenciar clientes, agendamentos e manutenções automáticas.
 
-First, run the development server:
+---
+
+## 🚀 Tecnologias
+
+- [Next.js 15](https://nextjs.org/) — frontend e backend (rotas App Router)
+- [TypeScript](https://www.typescriptlang.org/) — tipagem estática
+- [Prisma](https://www.prisma.io/) — ORM para banco de dados
+- [MongoDB Atlas](https://www.mongodb.com/atlas) — banco de dados na nuvem
+- [Zod](https://zod.dev/) — validação de dados
+- [date-fns](https://date-fns.org/) — manipulação de datas
+- [Thunder Client](https://www.thunderclient.com/) — testes de API no VSCode
+- [Resend](https://resend.com/) *(opcional)* — envio de emails de lembrete
+
+---
+
+## 📂 Estrutura de Pastas
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+src/
+ ├── app/
+ │   └── api/
+ │       ├── appointments/
+ │       │   └── route.ts        # POST e GET de agendamentos
+ │       ├── appointments/[id]/
+ │       │   └── route.ts        # PATCH de status do agendamento
+ │       └── jobs/due-maintenance/
+ │           └── route.ts        # Job diário de manutenção
+ │
+ ├── lib/
+ │   ├── db.ts                   # Conexão Prisma + MongoDB
+ │   └── mailer.ts               # Simulador de envio de email
+ │
+ └── prisma/
+     └── schema.prisma           # Definição do modelo de dados
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🗄️ Modelos no Prisma
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```prisma
+model Client {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  phoneE164 String   @unique
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-## Learn More
+  appointments Appointment[]
+}
 
-To learn more about Next.js, take a look at the following resources:
+model Appointment {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  clientId        String   @db.ObjectId
+  service         String
+  startsAt        DateTime
+  maintenanceDueAt DateTime
+  status          String   @default("SCHEDULED")
+  createdAt       DateTime @default(now())
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+  client Client @relation(fields: [clientId], references: [id])
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🔑 Variáveis de Ambiente (`.env`)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+DATABASE_URL="mongodb+srv://USER:PASS@CLUSTER.mongodb.net/agenda-cilios"
+CRON_SECRET="sua_senha_segura"
+ALERT_TARGET_EMAIL="profissional@exemplo.com"
+ALERT_SENDER_EMAIL="noreply@seudominio.com"
+# RESEND_API_KEY=re_xxx (opcional)
+TZ_BACKEND="America/Sao_Paulo"
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## ⚙️ Rotas da API
+
+### ➕ Criar Agendamento
+`POST /api/appointments`
+
+```json
+{
+  "name": "Maria Alves",
+  "phone": "(11) 99999-9999",
+  "email": "maria@email.com",
+  "service": "Cílios fio a fio",
+  "startsAt": "2025-09-01T14:00"
+}
+```
+
+---
+
+### 📋 Listar Agendamentos
+`GET /api/appointments?page=1&perPage=10`
+
+---
+
+### ✏️ Atualizar Status
+`PATCH /api/appointments/:id`
+
+```json
+{
+  "status": "DONE"
+}
+```
+
+Status possíveis:  
+- `SCHEDULED`  
+- `REMINDER_SENT`  
+- `DONE`  
+- `CANCELLED`
+
+---
+
+### 🔔 Job de Manutenção
+`GET /api/jobs/due-maintenance?secret=CRON_SECRET`
+
+Verifica agendamentos com **manutenção de 20 dias** e envia lembrete.
+
+---
+
+## 🛠️ Como rodar localmente
+
+```bash
+# 1. Instale as dependências
+npm install
+
+# 2. Configure o .env
+cp .env.example .env
+
+# 3. Gere o cliente Prisma
+npx prisma db push
+
+# 4. Rode o servidor
+npm run dev
+```
+
+API disponível em:  
+👉 http://localhost:3000/api/appointments  
+
+---
+
+## 📌 Próximos Passos
+
+- [ ] Criar painel admin simples no Next.js para visualizar agendamentos.  
+- [ ] Deploy na **Vercel** com cron configurado.  
+- [ ] Ativar envio real de e-mails com **Resend**.  
+- [ ] Integração com botão **Agendar via WhatsApp**.  
+
+---
+
+## ✨ Créditos
+
+Desenvolvido por **Lidiane** 
